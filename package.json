@@ -1,15 +1,79 @@
 {
   "name": "piko",
-  "private": true,
-  "version": "0.0.0",
+  "private": false,
+  "version": "0.0.1",
   "type": "module",
+  "displayName": "PikoJS",
+  "description": "A lightweight and fast JavaScript framework for creating web applications.",
+  "main": "dist/piko.umd.js",
+  "module": "dist/piko.esm.js",
+  "types": "dist/piko.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/piko.es.js",
+      "require": "./dist/piko.umd.js"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest",
+    "lint": "eslint src --ext .ts,.tsx --fix --cache",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "check-format": "prettier --check \"src/**/*.{ts,tsx}\"",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "@eslint/js": "^9.30.0",
+    "@types/node": "^24.0.8",
+    "@typescript-eslint/eslint-plugin": "^8.34.1",
+    "@typescript-eslint/parser": "^8.34.1",
+    "eslint": "^9.30.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.5.0",
+    "globals": "^16.3.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.6.2",
     "typescript": "~5.8.3",
-    "vite": "^7.0.0"
+    "typescript-eslint": "^8.35.1",
+    "vite": "^7.0.0",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^3.2.4"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/pikojs/piko",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pikojs/piko"
+  },
+  "bugs": {
+    "url": "https://github.com/pikojs/piko/issues"
+  },
+  "author": {
+    "name": "Anuj Kumar",
+    "email": "nanowiz@gmail.com",
+    "url": "https://github.com/pikojs/piko"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "piko",
+    "framework",
+    "javascript",
+    "typescript",
+    "web",
+    "frontend",
+    "library",
+    "react",
+    "vue"
+  ],
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   }
 }
