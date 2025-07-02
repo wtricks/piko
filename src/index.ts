@@ -7,10 +7,11 @@ export {
     createEffect as effect,
     createSignal as signal,
     createMemo as memo,
-    withoutBatch as batch,
+    withoutBatch as instant,
     untrackSignal as untrack,
     observeSignal as observe,
     createRef as ref,
+    nextTick as next,
 } from './hooks';
 
 export type { Signal, Setter, Getter } from './hooks';

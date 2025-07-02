@@ -1,9 +1,11 @@
+import type { VoidFn } from '../types';
 import {
     def,
     falsy,
     isBool,
     isEqual,
     isFunction,
+    runAll,
     scheduler,
     values,
 } from '../utils/helper';
@@ -176,6 +178,7 @@ const __DEEP_FLUSH = 3,
 
 let __IS_RAN1: { [key: number]: boolean } = {},
     __IS_RAN2: { [key: number]: boolean } = {},
+    __NEXT_TICK_FN: VoidFn[] = [],
     __PENDING = false;
 
 let batchUpdate: (arg0: SignalDep) => void;
@@ -235,6 +238,10 @@ const flushUpdates = () => {
     __IS_RAN1 = {};
     __IS_RAN2 = {};
     __PENDING = false;
+
+    // Run next tick functions
+    runAll(__NEXT_TICK_FN);
+    __NEXT_TICK_FN = [];
 };
 
 /**
@@ -258,8 +265,7 @@ const helperFn = (DEP: SignalDep) => {
  * Change `signals` value without running the batch process.
  * @param fn A function which may change `signals`.
  */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-export const withoutBatch = (fn: Function): void => {
+export const withoutBatch = (fn: VoidFn): void => {
     if (__DEV__ && !isFunction(fn)) {
         throw new TypeError(
             'First parameter of `' +
@@ -276,4 +282,18 @@ export const withoutBatch = (fn: Function): void => {
         __IS_RAN2 = {};
         __IS_RAN1 = {};
     }
+};
+
+/**
+ * Schedule a function to run after the current call stack has cleared.
+ * @param fn The function to be executed on the next tick.
+ */
+export const nextTick = (fn: VoidFn) => {
+    if (__DEV__ && !isFunction(fn)) {
+        throw new TypeError(
+            'First parameter of `' + nextTick.name + '()` must be a function.'
+        );
+    }
+
+    __NEXT_TICK_FN.push(fn);
 };
