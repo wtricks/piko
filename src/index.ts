@@ -2,3 +2,15 @@ export const Piko = {
     name: 'Piko',
     version: '0.0.1',
 };
+
+export {
+    createEffect as effect,
+    createSignal as signal,
+    createMemo as memo,
+    withoutBatch as batch,
+    untrackSignal as untrack,
+    observeSignal as observe,
+    createRef as ref,
+} from './hooks';
+
+export type { Signal, Setter, Getter } from './hooks';
