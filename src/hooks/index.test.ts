@@ -1,6 +1,12 @@
 import { expect, it, describe, vi } from 'vitest';
 
-import { createSignal, observeSignal, untrackSignal, withoutBatch } from '.';
+import {
+    createSignal,
+    observeSignal,
+    untrackSignal,
+    withoutBatch,
+    nextTick,
+} from '.';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 const tick = async (fn: Function) => {
@@ -181,5 +187,32 @@ describe('withoutBatch', () => {
 
         setter(100);
         await tick(() => expect(observer).toBeCalledTimes(3));
+    });
+});
+
+describe('nextTick', () => {
+    it('should schedule a function to run after the current call stack has cleared', async () => {
+        let called = 'Not Called';
+
+        const [getter, setter] = createSignal(0);
+        const observer = vi.fn(() => getter());
+
+        observeSignal(() => {
+            observer();
+            called = 'By Signal';
+        });
+
+        nextTick(() => {
+            called = 'By nextTick';
+        });
+
+        setter(42);
+
+        expect(called).toBe('By Signal');
+
+        await tick(() => {
+            expect(observer).toBeCalledTimes(2);
+            expect(called).toBe('By nextTick');
+        });
     });
 });
