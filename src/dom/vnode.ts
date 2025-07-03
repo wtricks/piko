@@ -1,4 +1,22 @@
-import type { Child, PropsFor, TagOrComponent, VNode } from './types';
+import type {
+    Child,
+    Component,
+    PropsFor,
+    RegisteredComponents,
+    TagOrComponent,
+    VNode,
+} from './types';
+
+const componentRegistry = {} as {
+    [K in keyof RegisteredComponents]: Component<PropsFor<K>>;
+};
+
+export const registerComponent = <K extends keyof RegisteredComponents>(
+    name: K,
+    component: RegisteredComponents[K]
+) => {
+    componentRegistry[name] = component;
+};
 
 /**
  * Create a new virtual node.
