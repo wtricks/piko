@@ -1,9 +1,13 @@
+import type { __UIID__ } from '../utils/helper';
+
 declare module './types' {
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     interface RegisteredComponents {}
 }
 
-export type Component<P = { [key: string]: unknown }> = (props: P) => VNode;
+export type Component<P = { [key: string]: unknown } & { children?: Child }> = (
+    props: P
+) => VNode;
 
 export type ComponentReturnVNode<T> =
     T extends Component<infer P> ? VNode<T, P> : never;
@@ -37,5 +41,5 @@ export type VNode<
     t: T;
     p: P;
     c: Child;
-    $?: 0 | 1;
+    [__UIID__]?: 0 | 1;
 };

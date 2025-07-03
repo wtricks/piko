@@ -140,6 +140,6 @@ export const scheduler = () => {
  * @param key - The key of the property to check.
  * @returns True if the object has the specified property, otherwise false.
  */
-export const hasProperty = (obj: unknown, key: string) => {
+export const hasProperty = (obj: unknown, key: PropertyKey) => {
     return Object.prototype.hasOwnProperty.call(obj, key);
 };
