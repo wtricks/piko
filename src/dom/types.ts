@@ -12,7 +12,7 @@ export type Component<P = { [key: string]: unknown } & { children?: Child }> = (
 export type ComponentReturnVNode<T> =
     T extends Component<infer P> ? VNode<T, P> : never;
 
-export type Child = string | number | VNode | Child[];
+export type Child = string | number | VNode;
 
 export type ComponentProps<T> = T extends Component<infer P> ? P : never;
 
@@ -40,6 +40,6 @@ export type VNode<
 > = {
     t: T;
     p: P;
-    c: Child;
+    c: Child[];
     [__UIID__]?: 0 | 1;
 };

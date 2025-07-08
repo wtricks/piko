@@ -19,6 +19,14 @@ const componentRegistry = {} as {
     [K in keyof RegisteredComponents]: Component<PropsFor<K>>;
 };
 
+/**
+ * Registers a component with the given name and component implementation.
+ *
+ * The component will be stored in the component registry.
+ *
+ * @param name The name of the component to register.
+ * @param component The component implementation to register.
+ */
 export const registerComponent = <K extends keyof RegisteredComponents>(
     name: K,
     component: RegisteredComponents[K]
@@ -44,59 +52,42 @@ export function createVNode<T extends TagOrComponent>(
 ): VNode<T, PropsFor<T>>;
 
 /**
- * Creates a virtual node (VNode) from the given tag and props.
- *
- * The VNode's `tag` property will be set to the given tag.
- * The VNode's `props` property will be set to a shallow copy of the given props.
- * The VNode's `children` property will be set to an empty array.
- *
- * @param tag The tag to create the VNode from.
- * @param props The props to set on the VNode.
- * @returns The created VNode.
- */
-export function createVNode<T extends TagOrComponent>(
-    tag: T,
-    props: PropsFor<T>
-): VNode<T, PropsFor<T>>;
-
-/**
- * Creates a virtual node (VNode) from the given tag and children.
- *
- * The VNode's `tag` property will be set to the given tag.
- * The VNode's `props` property will be set to an empty object.
- * The VNode's `children` property will be set to a shallow copy of the given children.
- *
- * @param tag The tag to create the VNode from.
- * @param children The children to set on the VNode.
- * @returns The created VNode.
- */
-export function createVNode<T extends TagOrComponent>(
-    tag: T,
-    children: Child
-): VNode<T, PropsFor<T>>;
-
-/**
  * Creates a virtual node (VNode) from the given tag, props, and children.
  *
- * The VNode's `tag` property will be set to the given tag.
- * The VNode's `props` property will be set to a shallow copy of the given props.
- * The VNode's `children` property will be set to a shallow copy of the given children.
- *
  * @param tag The tag to create the VNode from.
  * @param props The props to set on the VNode.
- * @param children The children to set on the VNode.
+ * @param children The children of the VNode.
  * @returns The created VNode.
  */
 export function createVNode<T extends TagOrComponent>(
     tag: T,
     props: PropsFor<T>,
-    children: Child
+    ...children: Child[]
+): VNode<T, PropsFor<T>>;
+
+/**
+ * Creates a virtual node (VNode) from the given tag and children.
+ *
+ * If the tag is a string, it is treated as an HTML tag name.
+ * If the tag is an object, it is assumed to be a component.
+ * If the tag is a function, it is assumed to be a component function.
+ *
+ * The VNode's `tag` property will be set to the given tag.
+ * The VNode's `props` property will be set to an empty object.
+ * The VNode's `children` property will be set to the given children.
+ *
+ * @param tag The tag to create the VNode from.
+ * @param children The children of the VNode.
+ * @returns The created VNode.
+ */
+export function createVNode<T extends TagOrComponent>(
+    tag: T,
+    ...children: Child[]
 ): VNode<T, PropsFor<T>>;
 
 export function createVNode<T extends TagOrComponent>(
     tag: T,
-    propsOrChildren?: PropsFor<T> | Child,
-    maybeChildren?: Child
+    ...propsOrChildren: (PropsFor<T> | Child)[]
 ): VNode<T, PropsFor<T>> {
     if (__DEV__ && !isString(tag) && !isFunction(tag)) {
         throw new TypeError(
@@ -106,19 +97,21 @@ export function createVNode<T extends TagOrComponent>(
         );
     }
 
-    if (!isObject(propsOrChildren) || hasProperty(propsOrChildren, __UIID__)) {
-        maybeChildren = propsOrChildren as Child;
-        propsOrChildren = emptyObject as PropsFor<T>;
-    }
+    let props: PropsFor<T> = emptyObject as PropsFor<T>;
+    let maybeChildren: Child[] = propsOrChildren as Child[];
 
-    if (!maybeChildren) {
-        maybeChildren = [] as Child;
+    if (
+        isObject(propsOrChildren[0]) &&
+        !hasProperty(propsOrChildren[0], __UIID__)
+    ) {
+        props = propsOrChildren[0] as PropsFor<T>;
+        maybeChildren = propsOrChildren.slice(1) as Child[];
     }
 
     return {
         t: tag,
-        p: propsOrChildren as PropsFor<T>,
-        c: maybeChildren as Child,
+        p: props,
+        c: maybeChildren,
         [__UIID__]: 0,
     };
 }
