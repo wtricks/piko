@@ -108,10 +108,18 @@ export function createVNode<T extends TagOrComponent>(
         maybeChildren = propsOrChildren.slice(1) as Child[];
     }
 
-    return {
+    // eslint-disable-next-line prefer-const
+    let vnode = {
         t: tag,
         p: props,
         c: maybeChildren,
         [__UIID__]: 0,
-    };
+    } as VNode<T, PropsFor<T>>;
+
+    if (isString(tag) && hasProperty(componentRegistry, tag)) {
+        vnode.t = componentRegistry[tag as keyof RegisteredComponents];
+        vnode[__UIID__] = 1;
+    }
+
+    return vnode;
 }
