@@ -1,14 +1,24 @@
+import type { ObserveFn } from '../hooks';
+import type { VoidFn } from '../types';
 import {
     __UIID__,
     emptyObject,
     hasProperty,
+    isArray,
     isFunction,
     isObject,
     isString,
 } from '../utils/helper';
+import {
+    createElement,
+    createExpression,
+    createTextNode,
+    insertElement,
+} from './dom';
 import type {
     Child,
     Component,
+    ComponentReturnType,
     PropsFor,
     RegisteredComponents,
     TagOrComponent,
@@ -123,3 +133,60 @@ export function createVNode<T extends TagOrComponent>(
 
     return vnode;
 }
+
+/**
+ * Recursively creates DOM nodes from the given virtual node and its children.
+ * If the virtual node is an array, it will recursively call itself on each of the children.
+ * If the virtual node is a string, it will create a text node.
+ * If the virtual node is an object, it will create an element with the given tag name and properties.
+ * @param parent The parent element to insert the created DOM nodes into.
+ * @param vnode The virtual node to create DOM nodes from.
+ * @param anchor The element to insert the DOM nodes before.
+ * @returns The created DOM node, or the component if the virtual node is a component.
+ */
+export const createDOMNodes = (
+    parent: Element,
+    vnode: Child,
+    anchor: Element | Text,
+    dep?: VoidFn[]
+): ComponentReturnType | void | Element | Text => {
+    if (!vnode) return;
+
+    let nextElement: Element | Text | ComponentReturnType | void = void 0;
+    let currentElement: Element | Text | ComponentReturnType | void;
+
+    if (isArray(vnode)) {
+        for (const node of vnode) {
+            currentElement = createDOMNodes(parent, node, anchor, dep);
+            anchor = (
+                currentElement
+                    ? (currentElement as ComponentReturnType).l
+                        ? (currentElement as ComponentReturnType).l()
+                        : currentElement
+                    : nextElement
+            ) as Text;
+        }
+    } else if (isFunction(vnode)) {
+        nextElement = createExpression(
+            vnode as ObserveFn<string>,
+            dep as ObserveFn<void>[]
+        );
+    } else if ((vnode as VNode)[__UIID__] == 0) {
+        nextElement = createElement((vnode as VNode).t as string) as Element;
+        for (const node of (vnode as VNode).c) {
+            createDOMNodes(nextElement, node as Child, anchor, dep);
+        }
+    } else if ((vnode as VNode)[__UIID__] == 1) {
+        // create component here
+    } else {
+        nextElement = createTextNode(vnode as string);
+    }
+
+    if (!(nextElement as unknown as ComponentReturnType).l) {
+        insertElement(nextElement as Element, parent, anchor as Element);
+    }
+
+    if (anchor) {
+        return nextElement;
+    }
+};
