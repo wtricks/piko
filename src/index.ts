@@ -15,3 +15,7 @@ export {
 } from './hooks';
 
 export type { Signal, Setter, Getter } from './hooks';
+
+export { createVNode as h } from './dom';
+
+export type { VNode, Child, Component } from './dom';
