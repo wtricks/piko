@@ -7,11 +7,21 @@ declare module './types' {
     interface RegisteredComponents {}
 }
 
-type EnhanceNativeProps<T> = Omit<T, 'class' | 'className' | 'style'> & {
-    class?: ClassName | ObserveFn<ClassName>;
-    className?: ClassName | ObserveFn<ClassName>;
-    style?: StyleSheet | ObserveFn<StyleSheet>;
+type ObservableProps<T> = {
+    [K in keyof T]: T[K] | ObserveFn<T[K]>;
 };
+
+type DisallowedLabelProp<T extends string, P> = T extends 'label'
+    ? P & { for: string }
+    : P;
+
+type EnhanceNativeProps<T, N extends string> = DisallowedLabelProp<
+    N,
+    Omit<T, 'class' | 'style'> & {
+        class?: ClassName;
+        style?: StyleSheet;
+    }
+>;
 
 export type Component<P = { [key: string]: unknown } & { children?: Child }> = (
     props: P
@@ -33,7 +43,7 @@ export type TagOrComponent =
     | Component<any>;
 
 export type PropsFor<T> = T extends NativeTag
-    ? Partial<EnhanceNativeProps<HTMLElementTagNameMap[T]>>
+    ? Partial<ObservableProps<EnhanceNativeProps<HTMLElementTagNameMap[T], T>>>
     : T extends keyof RegisteredComponents
       ? RegisteredComponents[T] extends Component<infer P>
           ? P
