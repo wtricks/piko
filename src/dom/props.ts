@@ -187,3 +187,54 @@ export const resolveStyle = (
         dep
     );
 };
+
+/**
+ * Builds properties for a component by iterating over the provided props
+ * and setting them on the provided store object.
+ *
+ * For any key that is not 'ref' and does not start with 'on' followed by an
+ * uppercase letter, the value is set on the store object using the `def`
+ * utility.
+ *
+ * @param store - The object to set the component properties on.
+ * @param props - The object containing the properties to set.
+ * @returns The modified store object.
+ */
+export const renderPropsForComponent = (
+    store: Record<string, unknown>,
+    props: Record<string, unknown>
+) => {
+    let key;
+
+    for (key in props) {
+        if (key == 'ref' || /^on[A-Za-z]/.test(key)) {
+            store[key] = props[key];
+        } else {
+            createReactiveProp(store, key, props[key]);
+        }
+    }
+};
+
+/**
+ * Creates a reactive property on the provided store object.
+ * If the value is a function, it will be called on every get.
+ * Otherwise, the value will be returned as is.
+ *
+ * In development mode, the property will be made enumerable.
+ *
+ * @param store - The object to set the reactive property on.
+ * @param key - The key of the property to set.
+ * @param value - The value to set on the property.
+ */
+const createReactiveProp = (
+    store: Record<string, unknown>,
+    key: string,
+    value: unknown
+) => {
+    Object.defineProperty(store, key, {
+        ...(__DEV__ && { enumerable: true }),
+        get() {
+            return isFunction(value) ? value() : value;
+        },
+    });
+};
