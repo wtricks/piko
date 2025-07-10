@@ -124,12 +124,14 @@ export function createVNode<T extends TagOrComponent>(
         t: tag,
         p: props,
         c: maybeChildren,
-        [__UIID__]: 0,
     } as VNode<T, PropsFor<T>>;
 
     if (isString(tag) && hasProperty(componentRegistry, tag)) {
         vnode.t = componentRegistry[tag as keyof RegisteredComponents];
-        vnode[__UIID__] = 1;
+    }
+
+    if (isFunction(vnode.t)) {
+        vnode[__UIID__] = hasProperty(vnode.t, __UIID__) ? 1 : 0;
     }
 
     return vnode;
@@ -164,7 +166,9 @@ export const createDOMNodes = (
             vnode as ObserveFn<string>,
             dep as ObserveFn<void>[]
         );
-    } else if ((vnode as VNode)[__UIID__] == 0) {
+    } else if ((vnode as VNode)[__UIID__]) {
+        // create component here
+    } else if (isObject(vnode)) {
         nextElement = createElement((vnode as VNode).t as string) as Element;
         renderPropsForElement(
             nextElement as HTMLElement,
@@ -172,8 +176,6 @@ export const createDOMNodes = (
             dep as VoidFn[]
         );
         createDOMNodes(nextElement, (vnode as VNode).c, anchor, dep);
-    } else if ((vnode as VNode)[__UIID__] == 1) {
-        // create component here
     } else {
         nextElement = createTextNode(vnode as string);
     }

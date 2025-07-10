@@ -23,9 +23,9 @@ type EnhanceNativeProps<T, N extends string> = DisallowedLabelProp<
     }
 >;
 
-export type Component<P = { [key: string]: unknown } & { children?: Child }> = (
-    props: P
-) => VNode;
+export type Component<
+    P = { [key: string]: unknown } & { children?: Child; $$?: boolean },
+> = (props?: P) => VNode;
 
 export type ComponentReturnVNode<T> =
     T extends Component<infer P> ? VNode<T, P> : never;
