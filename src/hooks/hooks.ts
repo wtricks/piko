@@ -1,7 +1,8 @@
+import type { VoidFn } from '../types';
 import { def, isFunction, __UIID__ as UIID } from '../utils/helper';
 import type { DepFn, ObserveFn } from './types';
 
-export const __EFFECTS: DepFn[] & { [UIID]: boolean } = def(
+export const __EFFECTS: ObserveFn<void | VoidFn>[] & { [UIID]: boolean } = def(
     [],
     UIID,
     false
@@ -15,7 +16,7 @@ export const __EFFECTS: DepFn[] & { [UIID]: boolean } = def(
  * The given function will be called whenever any `signal` it reads is updated.
  * It is useful for creating side effects that depend on the values of `signal`s.
  */
-export const createEffect = <T>(fn: ObserveFn<T>) => {
+export const createEffect = (fn: ObserveFn<void | VoidFn>) => {
     if (__DEV__ && !isFunction(fn)) {
         throw new TypeError(
             'First parameter of `' +

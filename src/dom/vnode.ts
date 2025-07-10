@@ -1,3 +1,4 @@
+import { createComponent } from '../components';
 import type { ObserveFn } from '../hooks';
 import type { VoidFn } from '../types';
 import {
@@ -131,7 +132,7 @@ export function createVNode<T extends TagOrComponent>(
     }
 
     if (isFunction(vnode.t)) {
-        vnode[__UIID__] = hasProperty(vnode.t, __UIID__) ? 1 : 0;
+        vnode[__UIID__] = hasProperty(vnode.t, __UIID__) ? 1 : 2;
     }
 
     return vnode;
@@ -151,7 +152,8 @@ export const createDOMNodes = (
     parent: Element,
     vnode: Child | Child[],
     anchor?: Element | Text,
-    dep?: VoidFn[]
+    dep?: VoidFn[],
+    holder?: (Element | Text | ComponentReturnType)[]
 ) => {
     if (!vnode) return;
 
@@ -159,7 +161,7 @@ export const createDOMNodes = (
 
     if (isArray(vnode)) {
         for (const node of vnode) {
-            createDOMNodes(parent, node, anchor, dep);
+            createDOMNodes(parent, node, anchor, dep, holder);
         }
     } else if (isFunction(vnode)) {
         nextElement = createExpression(
@@ -167,7 +169,11 @@ export const createDOMNodes = (
             dep as ObserveFn<void>[]
         );
     } else if ((vnode as VNode)[__UIID__]) {
-        // create component here
+        nextElement = createComponent(
+            parent,
+            vnode as VNode,
+            anchor as Element
+        );
     } else if (isObject(vnode)) {
         nextElement = createElement((vnode as VNode).t as string) as Element;
         renderPropsForElement(
@@ -180,7 +186,17 @@ export const createDOMNodes = (
         nextElement = createTextNode(vnode as string);
     }
 
-    if (nextElement && !(nextElement as unknown as ComponentReturnType).l) {
+    if (!nextElement) {
+        return;
+    }
+
+    if (nextElement && !(nextElement as unknown as ComponentReturnType).d) {
         insertElement(nextElement as Element, parent, anchor as Element);
+    }
+
+    if (holder) {
+        holder.push(nextElement as Element | Text | ComponentReturnType);
+    } else if ((nextElement as unknown as ComponentReturnType).d) {
+        dep!.push((nextElement as unknown as ComponentReturnType).d);
     }
 };

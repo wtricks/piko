@@ -25,7 +25,7 @@ type EnhanceNativeProps<T, N extends string> = DisallowedLabelProp<
 
 export type Component<
     P = { [key: string]: unknown } & { children?: Child; $$?: boolean },
-> = (props?: P) => VNode;
+> = (props?: P) => Child | Child[];
 
 export type ComponentReturnVNode<T> =
     T extends Component<infer P> ? VNode<T, P> : never;
@@ -59,13 +59,12 @@ export type VNode<
     t: T;
     p: P;
     c: Child[];
-    [__UIID__]?: 0 | 1;
+    [__UIID__]?: 2 | 1;
 };
 
 export type ComponentReturnType = {
-    l: () => void;
     u: (anchor?: Text | Element) => void;
-    d: (removeAnchor?: boolean) => void;
+    d: () => void;
 };
 
 export type StyleSheet =
