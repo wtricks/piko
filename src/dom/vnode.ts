@@ -15,6 +15,7 @@ import {
     createTextNode,
     insertElement,
 } from './dom';
+import { renderPropsForElement } from './props';
 import type {
     Child,
     Component,
@@ -146,25 +147,17 @@ export function createVNode<T extends TagOrComponent>(
  */
 export const createDOMNodes = (
     parent: Element,
-    vnode: Child,
-    anchor: Element | Text,
+    vnode: Child | Child[],
+    anchor?: Element | Text,
     dep?: VoidFn[]
-): ComponentReturnType | void | Element | Text => {
+) => {
     if (!vnode) return;
 
     let nextElement: Element | Text | ComponentReturnType | void = void 0;
-    let currentElement: Element | Text | ComponentReturnType | void;
 
     if (isArray(vnode)) {
         for (const node of vnode) {
-            currentElement = createDOMNodes(parent, node, anchor, dep);
-            anchor = (
-                currentElement
-                    ? (currentElement as ComponentReturnType).l
-                        ? (currentElement as ComponentReturnType).l()
-                        : currentElement
-                    : nextElement
-            ) as Text;
+            createDOMNodes(parent, node, anchor, dep);
         }
     } else if (isFunction(vnode)) {
         nextElement = createExpression(
@@ -173,20 +166,19 @@ export const createDOMNodes = (
         );
     } else if ((vnode as VNode)[__UIID__] == 0) {
         nextElement = createElement((vnode as VNode).t as string) as Element;
-        for (const node of (vnode as VNode).c) {
-            createDOMNodes(nextElement, node as Child, anchor, dep);
-        }
+        renderPropsForElement(
+            nextElement as HTMLElement,
+            (vnode as VNode).p,
+            dep as VoidFn[]
+        );
+        createDOMNodes(nextElement, (vnode as VNode).c, anchor, dep);
     } else if ((vnode as VNode)[__UIID__] == 1) {
         // create component here
     } else {
         nextElement = createTextNode(vnode as string);
     }
 
-    if (!(nextElement as unknown as ComponentReturnType).l) {
+    if (nextElement && !(nextElement as unknown as ComponentReturnType).l) {
         insertElement(nextElement as Element, parent, anchor as Element);
-    }
-
-    if (anchor) {
-        return nextElement;
     }
 };

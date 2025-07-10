@@ -1,3 +1,4 @@
+import type { ObserveFn } from '../hooks';
 import type { Fn } from '../types';
 import type { __UIID__ } from '../utils/helper';
 
@@ -5,6 +6,12 @@ declare module './types' {
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     interface RegisteredComponents {}
 }
+
+type EnhanceNativeProps<T> = Omit<T, 'class' | 'className' | 'style'> & {
+    class?: ClassName | ObserveFn<ClassName>;
+    className?: ClassName | ObserveFn<ClassName>;
+    style?: StyleSheet | ObserveFn<StyleSheet>;
+};
 
 export type Component<P = { [key: string]: unknown } & { children?: Child }> = (
     props: P
@@ -26,7 +33,7 @@ export type TagOrComponent =
     | Component<any>;
 
 export type PropsFor<T> = T extends NativeTag
-    ? Partial<HTMLElementTagNameMap[T]>
+    ? Partial<EnhanceNativeProps<HTMLElementTagNameMap[T]>>
     : T extends keyof RegisteredComponents
       ? RegisteredComponents[T] extends Component<infer P>
           ? P
@@ -50,3 +57,13 @@ export type ComponentReturnType = {
     u: (anchor?: Text | Element) => void;
     d: (removeAnchor?: boolean) => void;
 };
+
+export type StyleSheet =
+    | string
+    | Record<string, unknown>
+    | Record<string, unknown>[];
+
+export type ClassName =
+    | string
+    | Record<string, boolean>
+    | (string | Record<string, boolean>)[];
