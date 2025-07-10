@@ -1,3 +1,4 @@
+import type { Fn } from '../types';
 import type { __UIID__ } from '../utils/helper';
 
 declare module './types' {
@@ -12,7 +13,7 @@ export type Component<P = { [key: string]: unknown } & { children?: Child }> = (
 export type ComponentReturnVNode<T> =
     T extends Component<infer P> ? VNode<T, P> : never;
 
-export type Child = string | number | VNode;
+export type Child = string | number | VNode | Fn;
 
 export type ComponentProps<T> = T extends Component<infer P> ? P : never;
 
@@ -42,4 +43,10 @@ export type VNode<
     p: P;
     c: Child[];
     [__UIID__]?: 0 | 1;
+};
+
+export type ComponentReturnType = {
+    l: () => void;
+    u: (anchor?: Text | Element) => void;
+    d: (removeAnchor?: boolean) => void;
 };
