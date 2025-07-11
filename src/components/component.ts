@@ -11,7 +11,12 @@ import {
     type VNode,
 } from '../dom';
 import { renderPropsForComponent } from '../dom/props';
-import { __EFFECTS, observeSignal, type ObserveFn } from '../hooks';
+import {
+    __EFFECTS,
+    createEffect,
+    observeSignal,
+    type ObserveFn,
+} from '../hooks';
 import type { VoidFn } from '../types';
 import {
     __UIID__,
@@ -119,7 +124,9 @@ export const createComponent = (
                     !isFunction(componentEffects[current])
                 ) {
                     throw new TypeError(
-                        'Function used in `createEffect()` can return only function or void.'
+                        'Function used in `' +
+                            createEffect.name +
+                            '()` can return only function or void.'
                     );
                 }
             },

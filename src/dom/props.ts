@@ -88,7 +88,7 @@ export const resolveClassName = (
             for (const className of classNameStr) {
                 if (__DEV__ && !isString(className) && !isObject(className)) {
                     throw new TypeError(
-                        'Class name must be a string or object.'
+                        "Class attribute's value must be a string or object."
                     );
                 }
 
@@ -150,7 +150,7 @@ export const resolveStyle = (
                 !isArray(newStyle)
             ) {
                 throw new TypeError(
-                    'Styles must be a string, an object or an array.'
+                    "Style attribute's value must be a string, an object or an array."
                 );
             }
 
@@ -163,7 +163,7 @@ export const resolveStyle = (
                     : [newStyle]) {
                     if (__DEV__ && !isObject(styleObject)) {
                         throw new TypeError(
-                            'If Style is given as an array, each item must be an object.'
+                            "If style attribute's value is given as an array, each item must be an object."
                         );
                     }
 
