@@ -1,4 +1,4 @@
-import { createComponent } from '../components';
+import { componentRegistry, createComponent } from '../components';
 import type { ObserveFn } from '../hooks';
 import type { VoidFn } from '../types';
 import {
@@ -19,32 +19,12 @@ import {
 import { renderPropsForElement } from './props';
 import type {
     Child,
-    Component,
     ComponentReturnType,
     PropsFor,
     RegisteredComponents,
     TagOrComponent,
     VNode,
 } from './types';
-
-const componentRegistry = {} as {
-    [K in keyof RegisteredComponents]: Component<PropsFor<K>>;
-};
-
-/**
- * Registers a component with the given name and component implementation.
- *
- * The component will be stored in the component registry.
- *
- * @param name The name of the component to register.
- * @param component The component implementation to register.
- */
-export const registerComponent = <K extends keyof RegisteredComponents>(
-    name: K,
-    component: RegisteredComponents[K]
-) => {
-    componentRegistry[name] = component;
-};
 
 /**
  * Creates a virtual node (VNode) from the given tag.

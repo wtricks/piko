@@ -5,12 +5,33 @@ import {
     removeElement,
     type Component,
     type ComponentReturnType,
+    type PropsFor,
+    type RegisteredComponents,
     type VNode,
 } from '../dom';
 import { renderPropsForComponent } from '../dom/props';
 import { __EFFECTS, observeSignal, type ObserveFn } from '../hooks';
 import type { VoidFn } from '../types';
 import { __UIID__, falsy, isArray, isFunction, runAll } from '../utils/helper';
+
+export const componentRegistry = {} as {
+    [K in keyof RegisteredComponents]: Component<PropsFor<K>>;
+};
+
+/**
+ * Registers a component with the given name and component implementation.
+ *
+ * The component will be stored in the component registry.
+ *
+ * @param name The name of the component to register.
+ * @param component The component implementation to register.
+ */
+export const registerComponent = <K extends keyof RegisteredComponents>(
+    name: K,
+    component: RegisteredComponents[K]
+) => {
+    componentRegistry[name] = component;
+};
 
 /**
  * Marks a component as a built-in component by setting a unique identifier.
