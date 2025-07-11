@@ -1,6 +1,7 @@
 import {
     createDOMNodes,
     createTextNode,
+    createVNode,
     insertElement,
     removeElement,
     type Component,
@@ -12,7 +13,16 @@ import {
 import { renderPropsForComponent } from '../dom/props';
 import { __EFFECTS, observeSignal, type ObserveFn } from '../hooks';
 import type { VoidFn } from '../types';
-import { __UIID__, falsy, isArray, isFunction, runAll } from '../utils/helper';
+import {
+    __UIID__,
+    emptyObject,
+    falsy,
+    isArray,
+    isFunction,
+    runAll,
+} from '../utils/helper';
+
+let isPikoAlreadyMounted = false;
 
 export const componentRegistry = {} as {
     [K in keyof RegisteredComponents]: Component<PropsFor<K>>;
@@ -45,7 +55,7 @@ export const markBuiltInComponent = (fn: Component) => {
 export const createComponent = (
     element: Element,
     vnode: VNode,
-    anchor: Element
+    anchor?: Element
 ): ComponentReturnType => {
     if (__DEV__ && !isFunction(vnode.t)) {
         throw new TypeError(
@@ -151,5 +161,62 @@ export const createComponent = (
 
             removeElement(emptyTextNode as unknown as Element, element);
         },
+    };
+};
+
+type AppOptions = {
+    props: Record<string, unknown>;
+    components: Record<string, Component>;
+};
+/**
+ * Instantiate `Piko` Application
+ * @param component
+ * @param target
+ * @param options
+ */
+export const createApp = (
+    component: Component,
+    target: Node,
+    options?: AppOptions
+) => {
+    if (__DEV__) {
+        if (!(target instanceof Node)) {
+            throw new TypeError(
+                'Invalid DOM node provided in ' +
+                    createApp.name +
+                    ' Expected a valid DOM node.'
+            );
+        }
+
+        if (!isFunction(component)) {
+            throw new TypeError(
+                'Invalid component provided in `' +
+                    createApp.name +
+                    '()`. Expected a valid component.'
+            );
+        }
+
+        if (isPikoAlreadyMounted) {
+            throw new TypeError(
+                'An instance of `' + createApp.name + '()` is already mounted.'
+            );
+        }
+
+        isPikoAlreadyMounted = true;
+    }
+
+    let props = emptyObject;
+    if (options) {
+        props = options.props;
+        Object.assign(componentRegistry, options.components);
+    }
+
+    const destroy = createComponent(
+        target as Element,
+        createVNode(component, props)
+    ).d;
+    return () => {
+        destroy();
+        isPikoAlreadyMounted = false;
     };
 };
