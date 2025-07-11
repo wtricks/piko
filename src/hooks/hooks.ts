@@ -5,7 +5,8 @@ import type { DepFn, ObserveFn } from './types';
 export const __EFFECTS: ObserveFn<void | VoidFn>[] & { [UIID]: boolean } = def(
     [],
     UIID,
-    false
+    false,
+    true
 ) as DepFn[] & { [UIID]: boolean };
 
 /**

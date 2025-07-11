@@ -39,6 +39,8 @@ export const createComponent = (
     const dep: VoidFn[] = [];
     const holder: (Element | Text | ComponentReturnType)[] = [];
 
+    __EFFECTS[__UIID__] = true;
+
     renderPropsForComponent(store, (vnode as VNode).p);
     store.children ||= (vnode as VNode).c;
     const componentValue = ((vnode as VNode).t as Component)(
@@ -46,6 +48,8 @@ export const createComponent = (
             ? (vnode as VNode).p
             : store
     ) as VNode;
+
+    __EFFECTS[__UIID__] = false;
 
     if (
         __DEV__ &&
@@ -73,7 +77,8 @@ export const createComponent = (
 
         observeSignal(
             () => {
-                componentEffects[current]();
+                // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+                componentEffects[current] && componentEffects[current]();
                 componentEffects[current] = (effect() ||
                     falsy) as ObserveFn<VoidFn>;
 

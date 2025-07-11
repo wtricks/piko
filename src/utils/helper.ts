@@ -1,3 +1,5 @@
+import type { VoidFn } from '../types';
+
 /**
  * Creates a unique symbol.
  * @returns A unique symbol.
@@ -117,13 +119,11 @@ export const emptyObject = Object.freeze({});
  * Call each function from the array of functions.
  * @param functionArray A collection of functions.
  */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-export const runAll = (functionArray: (Function | unknown)[]) => {
+export const runAll = (functionArray: VoidFn[]) => {
     let runnableFunction;
 
     for (runnableFunction of functionArray) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-        isFunction(runnableFunction) && runnableFunction();
+        runnableFunction();
     }
 };
 
