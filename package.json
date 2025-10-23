@@ -1,8 +1,9 @@
 {
   "name": "piko",
   "version": "0.0.0",
-  "private": true,
+  "displayName": "Piko",
   "type": "module",
+  "description": "A powerful no-code/low-code platform to design, develop, and deploy cross-platform apps with React Native. Drag & drop UI components, integrate APIs, and publish instantly — all without writing a single line of code.",
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
   },
@@ -14,9 +15,14 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix --cache",
-    "format": "prettier --write src/"
+    "format": "prettier --write src/",
+    "prepare": "husky",
+    "precommit": "lint-staged",
+    "preinstall": "only-allow pnpm"
   },
   "dependencies": {
+    "@nuxt/ui": "^4.0.1",
+    "@vueuse/core": "^14.0.0",
     "pinia": "^3.0.3",
     "vue": "^3.5.22",
     "vue-router": "^4.6.3"
@@ -33,14 +39,37 @@
     "@vue/tsconfig": "^0.8.1",
     "eslint": "^9.37.0",
     "eslint-plugin-vue": "~10.5.0",
+    "husky": "^9.1.7",
     "jiti": "^2.6.1",
     "jsdom": "^27.0.1",
+    "lint-staged": "^16.2.6",
     "npm-run-all2": "^8.0.4",
+    "only-allow": "^1.2.1",
     "prettier": "3.6.2",
     "typescript": "~5.9.0",
     "vite": "^7.1.11",
     "vite-plugin-vue-devtools": "^8.0.3",
     "vitest": "^3.2.4",
     "vue-tsc": "^3.1.1"
+  },
+  "homepage": "https://github.com/wtricks/piko",
+  "bugs": {
+    "url": "https://github.com/wtricks/piko/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wtricks/piko.git"
+  },
+  "files": [
+    "dist",
+    "src",
+    "public",
+    "package.json",
+    "README.md"
+  ],
+  "lint-staged": {
+    "*.{ts,js,vue,json,css,md}": [
+      "prettier --write"
+    ]
   }
 }
