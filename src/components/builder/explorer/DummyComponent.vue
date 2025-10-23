@@ -1,0 +1,1 @@
+<template>Sidebar Content</template>

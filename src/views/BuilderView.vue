@@ -18,7 +18,7 @@ const sidebar = ref<NavigationItem>('components')
     />
     <div class="flex flex-1 overflow-hidden">
       <NavigationPanel v-model="sidebar" />
-      <!-- EXPLORER PANEL -->
+      <ExplorerPanel v-if="sidebar" v-model="sidebar" />
       <!-- CANVAS -->
       <!-- PROPERTY PANEL -->
     </div>
