@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import type { Device } from '@/stores/device'
 import { ref } from 'vue'
+import type { Device } from '@/stores/device'
+import type { NavigationItem } from '@/components/builder/navigation/NavigationPanel.vue'
 
 const device = ref<Device>()
+const sidebar = ref<NavigationItem>('components')
 </script>
 
 <template>
@@ -15,7 +17,7 @@ const device = ref<Device>()
       v-model:device="device"
     />
     <div class="flex flex-1 overflow-hidden">
-      <!-- NAVIGATION -->
+      <NavigationPanel v-model="sidebar" />
       <!-- EXPLORER PANEL -->
       <!-- CANVAS -->
       <!-- PROPERTY PANEL -->
