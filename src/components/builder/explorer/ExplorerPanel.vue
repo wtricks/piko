@@ -46,7 +46,7 @@ const componentSections: ComponentSectionObject = {
     minWidth: 320,
     maxWidth: 500,
     shrinkable: true,
-    component: defineAsyncComponent(() => import('./DummyComponent.vue')),
+    component: defineAsyncComponent(() => import('./components/EComponent.vue')),
   },
   screens: {
     minWidth: 320,
