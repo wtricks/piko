@@ -4,7 +4,7 @@ import type { Device } from '@/stores/device'
 import type { NavigationItem } from '@/components/builder/navigation/NavigationPanel.vue'
 
 const device = ref<Device>()
-const sidebar = ref<NavigationItem>('components')
+const sidebar = ref<NavigationItem>('screens')
 </script>
 
 <template>

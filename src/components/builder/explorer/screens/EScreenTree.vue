@@ -1,70 +1,44 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import type { TreeItem } from '@nuxt/ui'
-import type { TreeItemSelectEvent } from 'reka-ui'
-import type { FolderType } from './EScreen.vue'
+import { useComponentTree } from '@/composables/useComponentTree'
 
-const props = defineProps<{
-  type: FolderType
+defineProps<{
+  type: 'screens' | 'components' | 'all'
 }>()
 
-const selectedItem = ref<TreeItem>()
-const items = ref<TreeItem[]>([
-  {
-    label: 'screens',
-    defaultExpanded: true,
-    children: [
-      {
-        label: 'composables/',
-        children: [
-          {
-            label: 'useAuth.ts',
-            icon: 'i-vscode-icons-file-type-typescript',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    label: 'components',
-    defaultExpanded: true,
-    children: [
-      {
-        label: 'Button.vue',
-        icon: 'i-vscode-icons-file-type-vue',
-      },
-      {
-        label: 'Header.vue',
-        icon: 'i-vscode-icons-file-type-vue',
-      },
-    ],
-  },
-])
-
-const filterItems = computed<TreeItem[]>(() => {
-  if (props.type === 'screens') {
-    return [items.value[0]] as TreeItem[]
-  } else if (props.type === 'components') {
-    return [items.value[1]] as TreeItem[]
-  }
-  return items.value as TreeItem[]
+const tree = useComponentTree({
+  initialTree: [
+    {
+      id: '1',
+      name: 'src',
+      type: 'folder',
+      icon: 'flat-color-icons:folder',
+      expandIcon: 'fluent-emoji-flat:open-file-folder',
+      children: [
+        { id: '2', name: 'App.vue', type: 'file', icon: 'streamline-ultimate-color:file-css' },
+        {
+          id: '3',
+          name: 'components',
+          icon: 'flat-color-icons:folder',
+          expandIcon: 'fluent-emoji-flat:open-file-folder',
+          type: 'folder',
+          children: [
+            {
+              id: '4',
+              name: 'Header.vue',
+              type: 'file',
+              icon: 'streamline-ultimate-color:file-css',
+            },
+          ],
+        },
+      ],
+    },
+    { id: '5', name: 'package.json', type: 'file', icon: 'streamline-ultimate-color:file-css' },
+  ],
+  variant: 'component',
+  initialSorting: true,
 })
-
-const onSelect = (e: TreeItemSelectEvent<TreeItem>) => {
-  if (e.detail.originalEvent.type === 'click') {
-    e.preventDefault()
-
-    console.log('Selected item:', e.detail)
-  }
-}
 </script>
 
 <template>
-  <UTree
-    :items="filterItems"
-    propagate-select
-    bubble-select
-    @select="onSelect"
-    v-model="selectedItem"
-  />
+  <TreeView :config="tree" size="md" />
 </template>

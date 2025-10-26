@@ -130,7 +130,7 @@ useShortcut({
           />
         </div>
 
-        <div class="px-1">
+        <div class="w-full flex-1 overflow-y-auto scrollbar">
           <EScreenTree :type="activeTab" />
         </div>
       </template>
