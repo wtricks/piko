@@ -1,4 +1,5 @@
-import { ref, toRaw } from 'vue'
+import { refDebounced } from '@vueuse/core'
+import { ref, shallowRef, toRaw, watch } from 'vue'
 
 export type TreeNode = {
   id: string
@@ -171,7 +172,8 @@ export const useComponentTree = (options: ComponentTreeOptions) => {
   ///////////////// DRAG & DROP //////////////////////
   const isDraggingNode = ref(false)
   const dragging = ref<TreeNode[]>([])
-  const dropTarget = ref<TreeNode | null>(null)
+  const dropTarget = shallowRef<TreeNode | null>(null)
+  const dropTargetDebounceRef = refDebounced(dropTarget, 120)
 
   const startDrag = (nodes: TreeNode[]) => {
     dragging.value = nodes
@@ -179,12 +181,10 @@ export const useComponentTree = (options: ComponentTreeOptions) => {
 
   const enterDropTarget = (node: TreeNode) => {
     dropTarget.value = node
-    startHoldTimer()
   }
 
   const leaveDropTarget = (node: TreeNode) => {
     if (dropTarget.value?.id === node.id) dropTarget.value = null
-    stopHoldTimer()
   }
 
   const drop = (node?: TreeNode) => {
@@ -200,15 +200,15 @@ export const useComponentTree = (options: ComponentTreeOptions) => {
   }
 
   const isDropTarget = (node: TreeNode) => {
-    return dropTarget.value?.id === node.id && isTargetDropable(node)
+    return dropTargetDebounceRef.value?.id === node.id && isTargetDropable(node)
   }
 
   const isDropTargetIsFolder = () => {
-    return dropTarget.value?.type === 'folder'
+    return dropTargetDebounceRef.value?.type === 'folder'
   }
 
   const isDropTargetIsFile = () => {
-    return dropTarget.value?.type === 'file'
+    return dropTargetDebounceRef.value?.type === 'file'
   }
 
   const handleDragStart = (event: DragEvent, node: TreeNode) => {
@@ -235,7 +235,11 @@ export const useComponentTree = (options: ComponentTreeOptions) => {
     )
     const sorting = node?.sorting != undefined ? node.sorting : options.variant == 'screen'
     const index: number =
-      dropIntent.value == 'below' && node ? (target!.children?.indexOf(node!) as number) + 1 : -1
+      dropIntent.value == 'below' && node
+        ? target!.children
+          ? (target!.children.indexOf(node!) as number) + 1
+          : 0
+        : -1
     if (sources.length == 0 || !isTargetDropable(target)) return
 
     sources.forEach((source) => {
@@ -260,7 +264,7 @@ export const useComponentTree = (options: ComponentTreeOptions) => {
   }
 
   const isChildDropTarget = (node?: TreeNode) => {
-    return node && node.id == dropTarget.value?.parentId
+    return node && node.id == dropTargetDebounceRef.value?.parentId
   }
 
   const isTargetDropable = (node?: TreeNode) => {
@@ -280,12 +284,12 @@ export const useComponentTree = (options: ComponentTreeOptions) => {
   const startHoldTimer = () => {
     if (options.variant == 'screen') return
     clearInterval(progressInterval!)
-    console.log('start timer')
+
     progress.value = 0
     dropIntent.value = 'inside'
 
     progressInterval = window.setInterval(() => {
-      progress.value += 100 / (3 * 60) // 3 sec @ 60fps
+      progress.value += 100 / (2 * 60) // 2 sec @ 60fps
       if (progress.value >= 100) {
         progress.value = 100
         dropIntent.value = 'below'
@@ -296,10 +300,21 @@ export const useComponentTree = (options: ComponentTreeOptions) => {
 
   const stopHoldTimer = () => {
     if (options.variant == 'screen') return
-    console.log('end timer')
     clearInterval(progressInterval!)
     progress.value = 0
   }
+
+  watch(dropTargetDebounceRef, (curr, prev) => {
+    if (prev && curr && curr.id == prev.id) {
+    } else {
+      if (prev) {
+        stopHoldTimer()
+      }
+      if (curr) {
+        startHoldTimer()
+      }
+    }
+  })
 
   return {
     set,
