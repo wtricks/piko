@@ -285,8 +285,16 @@ export const useComponentTree = (options: ComponentTreeOptions) => {
       !node ||
       ((node.type == 'folder' || options.variant == 'component') &&
         !(node.draggable == false) &&
-        (dragging.value || []).every((n) => n.id != node.id))
+        (dragging.value || []).every((n) => isValidDropTarget(n.id, node)))
     )
+  }
+
+  const isValidDropTarget = (id: string, node?: TreeNode) => {
+    while (node) {
+      if (node.id == id) return false
+      node = node.parent
+    }
+    return true
   }
 
   ///////////////// TIMER //////////////////////
@@ -301,7 +309,7 @@ export const useComponentTree = (options: ComponentTreeOptions) => {
     progress.value = 0
     dropIntent.value = 'inside'
 
-    const totalDuration = 1600 // total = 1.6s
+    const totalDuration = 1500 // total = 1.5s
     const frameRate = 60
     const frameDuration = 1000 / frameRate
     const step = 100 / ((totalDuration / 1000) * frameRate)

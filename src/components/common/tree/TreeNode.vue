@@ -17,6 +17,7 @@ const isChildDropTarget = computed(() => config.isChildDropTarget(props.node))
 const isDropTarget = computed(() => config.isDropTarget(props.node))
 const isCollapsed = computed(() => config.isCollapsed(props.node.id))
 const isSelected = computed(() => config.isSelected(props.node.id))
+const isDragging = computed(() => config.isDragging(props.node))
 
 const icon = computed(() => {
   if (isCollapsed.value) {
@@ -47,6 +48,7 @@ const icon = computed(() => {
         'before:bg-orange-500': isDropTarget && config.progress.value == 100,
         'before:bottom-0': isDropTarget && config.progress.value == 100 && !config.dropAbove.value,
         'before:top-0': isDropTarget && config.progress.value == 100 && config.dropAbove.value,
+        'opacity-40': isDragging,
       }"
       :style="{
         paddingLeft: `${props.level * 16}px`,
@@ -83,34 +85,18 @@ const icon = computed(() => {
         }"
       ></div>
 
-      <UIcon
-        v-if="icon"
-        :name="icon"
+      <svg
+        v-if="isDropTarget && config.hasTimer"
+        class="-rotate-90"
         :class="{
           'size-4': size === 'sm',
           'size-5': size === 'md' || !size,
           'size-6': size === 'lg',
         }"
-      />
-
-      <span
-        class="truncate"
-        :class="{
-          'text-xs': size === 'sm',
-          'text-sm': size === 'md' || !size,
-          'text-base': size === 'lg',
-        }"
-        >{{ node.name }}</span
-      >
-
-      <UBadge v-if="isExpandable" color="neutral" size="xs" variant="subtle">
-        {{ node.children?.length || 0 }}
-      </UBadge>
-
-      <svg
-        v-if="isDropTarget && config.hasTimer"
-        class="absolute right-2 top-1/2 -translate-y-1/2 size-4 -rotate-90"
         viewBox="0 0 36 36"
+        :style="{
+          left: `${props.level * 16 + 16}px`,
+        }"
       >
         <circle
           cx="18"
@@ -138,6 +124,29 @@ const icon = computed(() => {
           }"
         />
       </svg>
+      <UIcon
+        v-else-if="icon"
+        :name="icon"
+        :class="{
+          'size-4': size === 'sm',
+          'size-5': size === 'md' || !size,
+          'size-6': size === 'lg',
+        }"
+      />
+
+      <span
+        class="truncate"
+        :class="{
+          'text-xs': size === 'sm',
+          'text-sm': size === 'md' || !size,
+          'text-base': size === 'lg',
+        }"
+        >{{ node.name }}</span
+      >
+
+      <UBadge v-if="isExpandable" color="neutral" size="xs" variant="subtle">
+        {{ node.children?.length || 0 }}
+      </UBadge>
 
       <UButton
         v-else
