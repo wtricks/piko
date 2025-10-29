@@ -35,16 +35,16 @@ const handleDrop = () => {
 </script>
 
 <template>
-  <div class="min-w-max space-y-1 overflow-x-auto" ref="tree">
+  <div class="min-w-max space-y-1 overflow-x-auto flex-1 flex flex-col" ref="tree">
     <TreeNode v-for="item in items" :key="item.id" :node="item" :level="0" />
+    <div
+      v-if="!disableRootDrop"
+      :class="{ 'bg-accented/50 dark:bg-muted/50': isDragOver }"
+      class="flex-1 w-full"
+      @dragover.prevent
+      @dragenter="isDragOver = true"
+      @dragleave="isDragOver = false"
+      @drop.prevent="handleDrop"
+    ></div>
   </div>
-  <div
-    v-if="!disableRootDrop"
-    :class="{ 'bg-accented/50 dark:bg-muted/50': isDragOver }"
-    class="flex-1 w-full h-full"
-    @dragover.prevent
-    @dragenter="isDragOver = true"
-    @dragleave="isDragOver = false"
-    @drop.prevent="handleDrop"
-  ></div>
 </template>

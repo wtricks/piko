@@ -130,7 +130,7 @@ useShortcut({
           />
         </div>
 
-        <div class="w-full flex-1 overflow-y-auto scrollbar">
+        <div class="w-full flex-1 overflow-y-auto scrollbar flex">
           <EScreenTree :type="activeTab" />
         </div>
       </template>
@@ -146,7 +146,7 @@ useShortcut({
     </div>
 
     <div
-      class="flex-1 bg-background p-2 overflow-y-auto scrollbar-thin scrollbar-thumb-rounded"
+      class="flex-1 bg-background p-2 overflow-y-auto scrollbar"
       :class="{ 'overflow-y-hidden p-0!': bottomHidden }"
     >
       <template v-if="!bottomHidden">

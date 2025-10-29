@@ -39,12 +39,14 @@ const icon = computed(() => {
         'py-2': size === 'lg',
         'after:absolute after:left-0 after:bottom-0 after:h-full after:w-full':
           config.isDraggingNode.value,
-        'before:absolute before:left-(--before-left) before:bottom-0 before:h-px before:w-full before:bg-warning':
+        'before:absolute before:left-(--before-left) before:bottom-0 before:h-0.5 before:w-[calc(100%-var(--before-left))] before:bg-warning':
           isChildDropTarget && !isDropTarget,
-        'before:bg-primary': isDropTarget && config.progress.value != 100,
-        'before:bg-orange-500': isDropTarget && config.progress.value == 100,
-        'before:absolute before:left-(--before-left) before:bottom-0 before:h-px before:w-full':
+        'before:absolute before:left-(--before-left) before:h-0.5 before:w-[calc(100%-var(--before-left))]':
           isDropTarget,
+        'before:bg-primary before:bottom-0': isDropTarget && config.progress.value != 100,
+        'before:bg-orange-500': isDropTarget && config.progress.value == 100,
+        'before:bottom-0': isDropTarget && config.progress.value == 100 && !config.dropAbove.value,
+        'before:top-0': isDropTarget && config.progress.value == 100 && config.dropAbove.value,
       }"
       :style="{
         paddingLeft: `${props.level * 16}px`,
@@ -57,7 +59,7 @@ const icon = computed(() => {
       @dragend="config.endDrag()"
       @dragenter.prevent.stop="config.enterDropTarget(node)"
       @dragleave.prevent.stop="config.leaveDropTarget(node)"
-      @dragover.prevent
+      @dragover.prevent="config.dragOver"
       @drop.prevent="config.handleDropEnd(node)"
     >
       <UIcon
@@ -129,7 +131,11 @@ const icon = computed(() => {
           stroke-linecap="round"
           :stroke-dasharray="100"
           :stroke-dashoffset="100 - config.progress.value"
-          class="text-primary transition-all duration-75 hover:stroke-d"
+          class="transition-all duration-75 hover:stroke-d"
+          :class="{
+            'text-primary': config.progress.value != 100,
+            'text-orange-500': config.progress.value == 100,
+          }"
         />
       </svg>
 
@@ -144,20 +150,20 @@ const icon = computed(() => {
       />
     </div>
 
-    <!-- <transition name="fade" mode="out-in"> -->
-    <div
-      v-if="!isCollapsed"
-      class="relative before:absolute before:left-(--before-left) before:top-0 before:bottom-0 before:w-px"
-      :style="{
-        '--before-left': `${props.level * 16 + 8}px`,
-      }"
-      :class="{
-        'before:bg-border': !isChildDropTarget,
-        'before:bg-warning': isChildDropTarget,
-      }"
-    >
-      <TreeNode v-for="child in node.children" :key="child.id" :node="child" :level="level + 1" />
-    </div>
-    <!-- </transition> -->
+    <transition name="fade" mode="out-in">
+      <div
+        v-if="!isCollapsed"
+        class="relative before:absolute before:left-(--before-left) before:top-0 before:bottom-0 before:w-0.5"
+        :style="{
+          '--before-left': `${props.level * 16 + 8}px`,
+        }"
+        :class="{
+          'before:bg-border': !isChildDropTarget,
+          'before:bg-warning': isChildDropTarget,
+        }"
+      >
+        <TreeNode v-for="child in node.children" :key="child.id" :node="child" :level="level + 1" />
+      </div>
+    </transition>
   </div>
 </template>
