@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, useTemplateRef } from 'vue'
+import { ref, computed, onMounted, useTemplateRef, watch } from 'vue'
 import { useEventListener } from '@vueuse/core'
 import type { TabsItem } from '@nuxt/ui'
-import EScreenTree from './EScreenTree.vue'
 import { useShortcut } from '@/composables/useShortcut'
+import { useProjectStore } from '@/stores/project'
 
 export type FolderType = 'all' | 'screens' | 'components'
 
@@ -85,6 +85,13 @@ useShortcut({
     inputRef.value?.inputRef?.focus()
   },
 })
+
+////////////  TREE ////////////
+const treeStore = useProjectStore()
+
+watch(activeTab, () => {
+  treeStore.setType(activeTab.value)
+})
 </script>
 
 <template>
@@ -131,7 +138,7 @@ useShortcut({
         </div>
 
         <div class="w-full flex-1 overflow-y-auto scrollbar flex">
-          <EScreenTree :type="activeTab" />
+          <TreeView :config="treeStore.screenTree" size="md" />
         </div>
       </template>
     </div>
@@ -149,10 +156,7 @@ useShortcut({
       class="flex-1 bg-background p-2 overflow-y-auto scrollbar"
       :class="{ 'overflow-y-hidden p-0!': bottomHidden }"
     >
-      <template v-if="!bottomHidden">
-        <span class="text-muted-foreground">Used Components</span>
-        <div class="h-[200vh]"></div>
-      </template>
+      <TreeView :config="treeStore.componentTree" size="md" />
     </div>
   </div>
 </template>

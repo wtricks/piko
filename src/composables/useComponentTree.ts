@@ -3,7 +3,7 @@ import { ref, shallowRef, toRaw, watch } from 'vue'
 
 export type TreeNode = {
   id: string
-  type: 'file' | 'folder'
+  type?: 'file' | 'folder'
   name: string
   icon?: string
   expandIcon?: string
