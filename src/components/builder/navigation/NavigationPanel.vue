@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { onBeforeMount, ref } from 'vue'
+import { useQueryParams } from '@/composables/useQueryParams'
+
 export type NavigationItem =
   | 'components'
   | 'screens'
@@ -28,15 +31,24 @@ const options: {
   { label: 'Settings', value: 'settings', icon: 'i-heroicons-cog-6-tooth' },
 ]
 
-const activeOption = defineModel()
+const activeOption = ref<NavigationItem | ''>('')
+const query = useQueryParams()
 
-const handleOptionChange = (value: string) => {
+const handleOptionChange = (value: NavigationItem) => {
   if (activeOption.value === value) {
-    activeOption.value = ''
+    activeOption.value = query.page = ''
     return
   }
-  activeOption.value = value
+  activeOption.value = query.page = value
 }
+
+onBeforeMount(() => {
+  if (options.find((option) => option.value === query.page)) {
+    activeOption.value = query.page as NavigationItem
+  } else {
+    handleOptionChange('components')
+  }
+})
 </script>
 
 <template>
@@ -68,4 +80,6 @@ const handleOptionChange = (value: string) => {
       </span>
     </UTooltip>
   </nav>
+
+  <ExplorerPanel v-if="activeOption" />
 </template>

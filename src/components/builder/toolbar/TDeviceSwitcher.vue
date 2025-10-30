@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeMount, reactive, ref, watch } from 'vue'
 import type { DropdownMenuItem, TabsItem } from '@nuxt/ui'
 import { useDeviceStore, type Device, type DeviceType } from '@/stores/device'
+import { useQueryParams } from '@/composables/useQueryParams'
 
 const toast = useToast()
 const deviceStore = useDeviceStore()
+const query = useQueryParams()
 
-const currentDevice = defineModel<Device>()
+const currentDevice = ref<Device>()
 
 const isAddDialogOpen = ref(false)
-const newDevice = ref<Device>({
+const newDevice = reactive<Device>({
+  id: Math.random().toString(36).slice(2),
   name: '',
   width: '',
   height: '',
@@ -18,7 +21,7 @@ const newDevice = ref<Device>({
 })
 
 const activeDeviceType = ref<DeviceType>('phone')
-const activeDeviceIndex = ref<Record<DeviceType, number>>({
+const activeDeviceIndex = reactive<Record<DeviceType, number>>({
   phone: -1,
   tablet: -1,
   desktop: -1,
@@ -45,7 +48,7 @@ const items = ref<TabsItem[]>([
 const deviceItems = computed<DropdownMenuItem[]>(() => {
   const activeDeviceName =
     deviceStore.devices[activeDeviceType.value as DeviceType][
-      activeDeviceIndex.value[activeDeviceType.value]
+      activeDeviceIndex[activeDeviceType.value]
     ]?.name
 
   return deviceStore.devices[activeDeviceType.value as DeviceType]?.map((device, index) => ({
@@ -55,7 +58,7 @@ const deviceItems = computed<DropdownMenuItem[]>(() => {
     description: `${device.width} x ${device.height}`,
     onUpdateChecked(checked) {
       if (checked) {
-        activeDeviceIndex.value[activeDeviceType.value] = index
+        activeDeviceIndex[activeDeviceType.value] = index
         changeModelValue()
       }
     },
@@ -64,11 +67,14 @@ const deviceItems = computed<DropdownMenuItem[]>(() => {
 
 const changeModelValue = () => {
   currentDevice.value =
-    deviceStore.devices[activeDeviceType.value][activeDeviceIndex.value[activeDeviceType.value]]
+    deviceStore.devices[activeDeviceType.value][activeDeviceIndex[activeDeviceType.value]]
+
+  query.device = currentDevice.value!.id
+  query.deviceType = activeDeviceType.value
 }
 
 const addDevice = () => {
-  if (!newDevice.value.name) {
+  if (!newDevice.name) {
     toast.add({
       title: 'Device name is required',
       color: 'error',
@@ -76,7 +82,7 @@ const addDevice = () => {
     return
   }
 
-  if (!newDevice.value.width) {
+  if (!newDevice.width) {
     toast.add({
       title: 'Select device width',
       color: 'error',
@@ -84,7 +90,7 @@ const addDevice = () => {
     return
   }
 
-  if (!newDevice.value.height) {
+  if (!newDevice.height) {
     toast.add({
       title: 'Select device height',
       color: 'error',
@@ -92,17 +98,16 @@ const addDevice = () => {
     return
   }
 
-  deviceStore.devices[activeDeviceType.value].push(newDevice.value as Device)
+  deviceStore.devices[activeDeviceType.value].push(newDevice as Device)
   isAddDialogOpen.value = false
 
   // Reset new device form
-  newDevice.value = {
-    name: '',
-    width: '',
-    height: '',
-    fontScale: 0,
-    frameImg: '',
-  }
+  newDevice.id = Math.random().toString(36).slice(2)
+  newDevice.fontScale = 0
+  newDevice.frameImg = ''
+  newDevice.name = ''
+  newDevice.width = ''
+  newDevice.height = ''
 
   toast.add({
     title: 'Device added successfully',
@@ -111,21 +116,37 @@ const addDevice = () => {
 }
 
 watch(
-  () => activeDeviceIndex.value + activeDeviceType.value,
+  () => activeDeviceIndex + activeDeviceType.value,
   () => {
     // Reset active device index when device type changes
     if (!activeDeviceType.value) {
       activeDeviceType.value = 'phone'
     }
 
-    if (activeDeviceIndex.value[activeDeviceType.value] === -1) {
-      activeDeviceIndex.value[activeDeviceType.value] = 0
+    if (activeDeviceIndex[activeDeviceType.value] === -1) {
+      activeDeviceIndex[activeDeviceType.value] = 0
     }
 
     changeModelValue()
   },
-  { immediate: true },
 )
+
+onBeforeMount(() => {
+  if (Object.keys(activeDeviceIndex).some((key) => query.deviceType === key)) {
+    activeDeviceType.value = query.deviceType as DeviceType
+  } else {
+    activeDeviceType.value = 'phone'
+  }
+
+  if (deviceStore.devices[activeDeviceType.value].some((device) => device.id === query.device)) {
+    activeDeviceIndex[activeDeviceType.value] = deviceStore.devices[
+      activeDeviceType.value
+    ].findIndex((device) => device.id === query.device)
+  } else {
+    activeDeviceIndex[activeDeviceType.value] = 0
+  }
+  changeModelValue()
+})
 </script>
 <template>
   <div class="flex items-center justify-between gap-4">

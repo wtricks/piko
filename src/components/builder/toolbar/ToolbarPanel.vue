@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import type { Device } from '@/stores/device'
 import type { ToolbarOptions } from './TProjectInfo.vue'
 
 defineProps<ToolbarOptions>()
-const currentDevice = defineModel<Device>('device')
 </script>
 
 <template>
@@ -12,7 +10,7 @@ const currentDevice = defineModel<Device>('device')
       <TProjectInfo v-bind="$props" />
     </div>
     <div class="flex items-center justify-center">
-      <TDeviceSwitcher v-model="currentDevice" />
+      <TDeviceSwitcher />
     </div>
     <div class="flex items-center justify-end">
       <TDevOptions />

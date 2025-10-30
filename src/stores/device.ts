@@ -5,6 +5,7 @@ import { largeScreenDevices, midScreenDevices, smallScreenDevices } from '@/comp
 export type DeviceType = 'phone' | 'tablet' | 'desktop'
 
 export type Device = {
+  id: string
   name: string
   width: string
   height: string

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { defineAsyncComponent, computed, ref, watch, type Component } from 'vue'
+import { defineAsyncComponent, computed, ref, watch, type Component, reactive } from 'vue'
 import { useEventListener } from '@vueuse/core'
 import type { NavigationItem } from '../navigation/NavigationPanel.vue'
+import { useQueryParams } from '@/composables/useQueryParams'
 
-const activetab = defineModel<NavigationItem | ''>()
+const query = useQueryParams()
 
-const config = ref({
+const config = reactive({
   width: 320,
   minWidth: 320,
   maxWidth: 320,
@@ -18,14 +19,14 @@ const resizing = ref(false)
 
 const startResizing = (e: MouseEvent) => {
   startX = e.clientX
-  startWidth = config.value.width
+  startWidth = config.width
   resizing.value = true
 }
 
 useEventListener('mousemove', (e: MouseEvent) => {
   if (!resizing.value) return
   const newWidth = startWidth + (e.clientX - startX)
-  config.value.width = Math.min(Math.max(newWidth, config.value.minWidth), config.value.maxWidth)
+  config.width = Math.min(Math.max(newWidth, config.minWidth), config.maxWidth)
 })
 
 useEventListener('mouseup', () => {
@@ -105,20 +106,17 @@ const componentSections: ComponentSectionObject = {
 }
 
 const activeSection = computed(() => {
-  return activetab.value ? componentSections[activetab.value as NavigationItem] : null
+  return query.page ? componentSections[query.page as NavigationItem] : null
 })
 
 watch(
   activeSection,
   (section) => {
     if (section) {
-      config.value.minWidth = section.minWidth
-      config.value.maxWidth = section.maxWidth
-      config.value.shrinkable = section.shrinkable
-      config.value.width = Math.max(
-        config.value.minWidth,
-        Math.min(config.value.width, config.value.maxWidth),
-      )
+      config.minWidth = section.minWidth
+      config.maxWidth = section.maxWidth
+      config.shrinkable = section.shrinkable
+      config.width = Math.max(config.minWidth, Math.min(config.width, config.maxWidth))
     }
   },
   { immediate: true },

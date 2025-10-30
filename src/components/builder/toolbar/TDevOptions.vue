@@ -28,7 +28,7 @@ const activeIssueTab = ref<IssueType>('all')
 const filteredIssues = computed(() => issueStore.filteredIssues(activeIssueTab.value))
 
 const isPrivate = ref(true)
-const shareLink = ref('https://yourapp.com/project/12345')
+const shareLink = ref(window.location.href)
 const { copy: copyToClipboard } = useClipboard()
 
 const copyLink = () => {
@@ -39,6 +39,11 @@ const copyLink = () => {
     color: 'success',
     duration: 3000,
   })
+}
+
+const createLink = () => {
+  isPrivate.value = true
+  shareLink.value = window.location.href
 }
 </script>
 
@@ -63,7 +68,7 @@ const copyLink = () => {
         <UTooltip text="Errors & Warnings">
           <div>
             <UChip show color="warning" size="3xl" :text="issueStore.issues.length">
-              <UButton variant="soft" color="neutral" icon="i-tabler-bug" />
+              <UButton variant="soft" color="neutral" icon="i-tabler-bug" @click="createLink" />
             </UChip>
           </div>
         </UTooltip>
