@@ -1,4 +1,4 @@
-import type { TreeNode } from '@/composables/useComponentTree'
+import type { TreeNode } from '@/composables/useTree'
 
 export const PROJECT_SCREENS: TreeNode[] = [
   {
@@ -7,7 +7,7 @@ export const PROJECT_SCREENS: TreeNode[] = [
     name: 'App',
     icon: 'material-symbols:apps',
     defaultState: 'open',
-    dropable: true,
+    droppable: true,
     children: [
       {
         id: 'home-screen',
@@ -15,7 +15,7 @@ export const PROJECT_SCREENS: TreeNode[] = [
         name: 'Home Screen',
         icon: 'mdi:home-outline',
         defaultState: 'open',
-        dropable: true,
+        droppable: true,
         children: [
           {
             id: 'header',
@@ -154,21 +154,21 @@ export const HOME_SCREEN_COMPONENTS: TreeNode = {
   name: 'Home Screen',
   icon: 'mdi:home-outline',
   defaultState: 'open',
-  dropable: true,
+  droppable: true,
   children: [
     {
       id: 'safe-area',
       type: 'folder',
       name: 'SafeAreaView',
       icon: 'mdi:cellphone-arrow-down',
-      dropable: true,
+      droppable: true,
       children: [
         {
           id: 'container',
           type: 'folder',
           name: 'Container (View)',
           icon: 'mdi:view-dashboard-outline',
-          dropable: true,
+          droppable: true,
           children: [
             {
               id: 'header',

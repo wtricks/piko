@@ -2,9 +2,7 @@
 import { computed, inject } from 'vue'
 import type { TreeNode } from '@/composables/useComponentTree'
 
-const config = inject('config')! as ReturnType<
-  typeof import('@/composables/useComponentTree').useComponentTree
->
+const config = inject('config')! as ReturnType<typeof import('@/composables/useTree').useTree>
 const size = inject('size')! as 'sm' | 'md' | 'lg' | undefined
 
 const props = defineProps<{
@@ -13,11 +11,11 @@ const props = defineProps<{
 }>()
 
 const isExpandable = computed(() => config.isExpandable(props.node))
-const isChildDropTarget = computed(() => config.isChildDropTarget(props.node))
-const isDropTarget = computed(() => config.isDropTarget(props.node))
+const isChildDropTarget = computed(() => config.isChildDropTarget(props.node.id))
+const isDropTarget = computed(() => config.isDropTarget(props.node.id))
 const isCollapsed = computed(() => config.isCollapsed(props.node.id))
 const isSelected = computed(() => config.isSelected(props.node.id))
-const isDragging = computed(() => config.isDragging(props.node))
+const isDragging = computed(() => config.isDragging(props.node.id))
 
 const icon = computed(() => {
   if (isCollapsed.value) {
@@ -38,31 +36,24 @@ const icon = computed(() => {
         'py-0.5': size === 'sm',
         'py-1': size === 'md' || !size,
         'py-2': size === 'lg',
-        'after:absolute after:left-0 after:bottom-0 after:h-full after:w-full':
-          config.isDraggingNode.value,
         'before:absolute before:left-(--before-left) before:bottom-0 before:h-0.5 before:w-[calc(100%-var(--before-left))] before:bg-warning':
           isChildDropTarget && !isDropTarget,
         'before:absolute before:left-(--before-left) before:h-0.5 before:w-[calc(100%-var(--before-left))]':
           isDropTarget,
         'before:bg-primary before:bottom-0': isDropTarget && config.progress.value != 100,
         'before:bg-orange-500': isDropTarget && config.progress.value == 100,
-        'before:bottom-0': isDropTarget && config.progress.value == 100 && !config.dropAbove.value,
-        'before:top-0': isDropTarget && config.progress.value == 100 && config.dropAbove.value,
+        'before:bottom-0':
+          isDropTarget && config.progress.value == 100 && !config.isDropAbove.value,
+        'before:top-0': isDropTarget && config.progress.value == 100 && config.isDropAbove.value,
         'opacity-40': isDragging,
       }"
       :style="{
         paddingLeft: `${props.level * 16}px`,
         '--before-left': `${props.level * 16 + 8}px`,
       }"
+      :data-tree-id="node.id"
       @click="config.select(node, $event)"
       @dblclick="config.toggle(node)"
-      draggable="true"
-      @dragstart="config.handleDragStart($event, node)"
-      @dragend="config.endDrag()"
-      @dragenter.prevent.stop="config.enterDropTarget(node)"
-      @dragleave.prevent.stop="config.leaveDropTarget(node)"
-      @dragover.prevent="config.dragOver"
-      @drop.prevent="config.handleDropEnd(node)"
     >
       <UIcon
         v-if="isExpandable"

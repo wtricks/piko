@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { computed, provide, useTemplateRef, ref } from 'vue'
+import { computed, onMounted, onUnmounted, provide, useTemplateRef } from 'vue'
 import { onClickOutside } from '@vueuse/core'
-import type { TreeNode as Node } from '@/composables/useComponentTree'
 
 const props = withDefaults(
   defineProps<{
     disableRootDrop?: boolean
     size?: 'sm' | 'md' | 'lg'
-    config: ReturnType<typeof import('@/composables/useComponentTree').useComponentTree>
+    rootId?: string
+    config: ReturnType<typeof import('@/composables/useTree').useTree>
   }>(),
   {
     disableRootDrop: false,
@@ -15,10 +15,9 @@ const props = withDefaults(
   },
 )
 
-const isDragOver = ref(false)
-const items = computed(() => props.config.get(false) as Node[])
-
 const treeContainer = useTemplateRef('tree')
+
+const isDropTarget = computed(() => props.config.isDropTarget(props.rootId || 'root-node'))
 
 onClickOutside(treeContainer, () => {
   props.config.unselectAll(false)
@@ -28,23 +27,33 @@ onClickOutside(treeContainer, () => {
 provide('config', props.config)
 provide('size', props.size)
 
-const handleDrop = () => {
-  props.config.handleDropEnd()
-  isDragOver.value = false
-}
+onMounted(() => {
+  props.config.start(treeContainer.value!)
+})
+
+onUnmounted(() => {
+  props.config.stop(treeContainer.value!)
+})
 </script>
 
 <template>
   <div class="min-w-max space-y-1 overflow-x-auto flex-1 flex flex-col" ref="tree">
-    <TreeNode v-for="item in items" :key="item.id" :node="item" :level="0" />
+    <TreeNode v-for="item in config.tree" :key="item.id" :node="item" :level="0" />
     <div
       v-if="!disableRootDrop"
-      :class="{ 'bg-accented/50 dark:bg-muted/50': isDragOver }"
+      :class="{ 'bg-accented/50 dark:bg-muted/50': isDropTarget }"
       class="flex-1 w-full"
-      @dragover.prevent
-      @dragenter="isDragOver = true"
-      @dragleave="isDragOver = false"
-      @drop.prevent="handleDrop"
+      :data-tree-id="rootId || 'root-node'"
     ></div>
   </div>
+  <Transition name="fade" mode="out-in">
+    <Teleport to="body" v-if="config.isMoving.value">
+      <div
+        class="fixed left-0 top-0 size-6 bg-accented dark:bg-muted z-10 rounded-3xl border border-accented shadow-2xl flex items-center justify-center"
+        :style="{ left: config.position.x - 24 + 'px', top: config.position.y - 24 + 'px' }"
+      >
+        {{ config.dragging.value.length }}
+      </div>
+    </Teleport>
+  </Transition>
 </template>
