@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import type { TreeNode } from '@/composables/useTree'
 import { computed, inject } from 'vue'
-import type { TreeNode } from '@/composables/useComponentTree'
 
 const config = inject('config')! as ReturnType<typeof import('@/composables/useTree').useTree>
 const size = inject('size')! as 'sm' | 'md' | 'lg' | undefined
@@ -140,13 +140,12 @@ const icon = computed(() => {
       </UBadge>
 
       <UButton
-        v-else
         icon="solar:menu-dots-bold"
         variant="ghost"
         :size="size === 'sm' ? 'xs' : size === 'md' ? 'xs' : 'sm'"
         class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
         :color="isSelected || !isCollapsed ? 'primary' : 'neutral'"
-        @click.stop
+        :data-tree-menu="node.id"
       />
     </div>
 

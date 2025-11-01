@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { onBeforeMount, ref } from 'vue'
-import { useQueryParams } from '@/composables/useQueryParams'
+import { useQueryRef } from '@/composables/useQueryRef'
 
 export type NavigationItem =
   | 'components'
@@ -31,24 +30,17 @@ const options: {
   { label: 'Settings', value: 'settings', icon: 'i-heroicons-cog-6-tooth' },
 ]
 
-const activeOption = ref<NavigationItem | ''>('')
-const query = useQueryParams()
+const activeOption = useQueryRef<NavigationItem | ''>('', 'page', (v) =>
+  options.some((option) => option.value === v),
+)
 
 const handleOptionChange = (value: NavigationItem) => {
   if (activeOption.value === value) {
-    activeOption.value = query.page = ''
+    activeOption.value = ''
     return
   }
-  activeOption.value = query.page = value
+  activeOption.value = value
 }
-
-onBeforeMount(() => {
-  if (options.find((option) => option.value === query.page)) {
-    activeOption.value = query.page as NavigationItem
-  } else {
-    handleOptionChange('components')
-  }
-})
 </script>
 
 <template>

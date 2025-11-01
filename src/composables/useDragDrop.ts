@@ -16,15 +16,17 @@ export function useDragDrop(options: DragDropOptions) {
   let currentDropId: string | null = null
   let currentSide: 'left' | 'right' | null = null
 
-  const handlePointerDown = (e: PointerEvent) => {
-    const el = (e.target as HTMLElement)?.closest(`[${dragAttr}]`) as HTMLElement | null
-    if (!el) return
+  const handlePointerDown = (e?: PointerEvent) => {
+    if (e) {
+      const el = (e.target as HTMLElement)?.closest(`[${dragAttr}]`) as HTMLElement | null
+      if (!el) return
 
-    const dragId = el.getAttribute(dragAttr)
-    if (!dragId || !dragStart?.(dragId, e)) return
+      const dragId = el.getAttribute(dragAttr)
+      if (!dragId || !dragStart?.(dragId, e)) return
 
-    position.x = e.clientX
-    position.y = e.clientY
+      position.x = e.clientX
+      position.y = e.clientY
+    }
 
     window.addEventListener('pointermove', handlePointerMove)
     window.addEventListener('pointerup', handlePointerUp)
@@ -65,8 +67,11 @@ export function useDragDrop(options: DragDropOptions) {
     currentDropId = null
   }
 
-  const start = (root: HTMLElement) => {
+  const start = (root: HTMLElement, continueWithMove = false) => {
     root.addEventListener('pointerdown', handlePointerDown)
+    if (continueWithMove) {
+      handlePointerDown()
+    }
   }
 
   const stop = (root: HTMLElement) => {

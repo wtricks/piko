@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { defineAsyncComponent, computed, ref, watch, type Component, reactive } from 'vue'
+import { defineAsyncComponent, ref, watch, type Component, reactive, computed } from 'vue'
 import { useEventListener } from '@vueuse/core'
 import type { NavigationItem } from '../navigation/NavigationPanel.vue'
-import { useQueryParams } from '@/composables/useQueryParams'
+import { useQueryRef } from '@/composables/useQueryRef'
 
-const query = useQueryParams()
+const activeSection = useQueryRef<ComponentSection | ''>('', 'page', (v) =>
+  Object.keys(componentSections).some((k) => k === v),
+)
 
 const config = reactive({
   width: 320,
@@ -105,12 +107,10 @@ const componentSections: ComponentSectionObject = {
   },
 }
 
-const activeSection = computed(() => {
-  return query.page ? componentSections[query.page as NavigationItem] : null
-})
+const currentComponent = computed(() => componentSections[activeSection.value as NavigationItem])
 
 watch(
-  activeSection,
+  currentComponent,
   (section) => {
     if (section) {
       config.minWidth = section.minWidth
@@ -134,7 +134,7 @@ watch(
         boxShadow: !config.shrinkable ? 'unset' : '3px 0 4px rgba(0,0,0,0.2)',
       }"
     >
-      <component :is="activeSection.component" />
+      <component :is="currentComponent.component" />
 
       <div
         v-if="config.shrinkable"

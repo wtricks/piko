@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, reactive, ref, watch } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import type { DropdownMenuItem, TabsItem } from '@nuxt/ui'
 import { useDeviceStore, type Device, type DeviceType } from '@/stores/device'
-import { useQueryParams } from '@/composables/useQueryParams'
+import { useQueryRef } from '@/composables/useQueryRef'
 
 const toast = useToast()
 const deviceStore = useDeviceStore()
-const query = useQueryParams()
-
-const currentDevice = ref<Device>()
 
 const isAddDialogOpen = ref(false)
 const newDevice = reactive<Device>({
@@ -20,12 +17,16 @@ const newDevice = reactive<Device>({
   frameImg: '',
 })
 
-const activeDeviceType = ref<DeviceType>('phone')
-const activeDeviceIndex = reactive<Record<DeviceType, number>>({
-  phone: -1,
-  tablet: -1,
-  desktop: -1,
-})
+const activeDeviceType = useQueryRef<DeviceType>('phone', 'deviceType', (v) =>
+  items.value.some((i) => i.value === v),
+)
+
+const activeDeviceId = useQueryRef<string>('', 'device')
+const currentActiveDevice = computed(
+  () =>
+    deviceStore.devices[activeDeviceType.value].find((d) => d.id === activeDeviceId.value) ||
+    deviceStore.devices[activeDeviceType.value][0],
+)
 
 const items = ref<TabsItem[]>([
   {
@@ -46,32 +47,18 @@ const items = ref<TabsItem[]>([
 ])
 
 const deviceItems = computed<DropdownMenuItem[]>(() => {
-  const activeDeviceName =
-    deviceStore.devices[activeDeviceType.value as DeviceType][
-      activeDeviceIndex[activeDeviceType.value]
-    ]?.name
-
-  return deviceStore.devices[activeDeviceType.value as DeviceType]?.map((device, index) => ({
+  return deviceStore.devices[activeDeviceType.value as DeviceType]?.map((device) => ({
     label: device.name,
     type: 'checkbox',
-    checked: device.name === activeDeviceName,
+    checked: device.name === currentActiveDevice.value?.name,
     description: `${device.width} x ${device.height}`,
     onUpdateChecked(checked) {
       if (checked) {
-        activeDeviceIndex[activeDeviceType.value] = index
-        changeModelValue()
+        activeDeviceId.value = device.id
       }
     },
   })) as DropdownMenuItem[]
 })
-
-const changeModelValue = () => {
-  currentDevice.value =
-    deviceStore.devices[activeDeviceType.value][activeDeviceIndex[activeDeviceType.value]]
-
-  query.device = currentDevice.value!.id
-  query.deviceType = activeDeviceType.value
-}
 
 const addDevice = () => {
   if (!newDevice.name) {
@@ -114,39 +101,6 @@ const addDevice = () => {
     color: 'success',
   })
 }
-
-watch(
-  () => activeDeviceIndex + activeDeviceType.value,
-  () => {
-    // Reset active device index when device type changes
-    if (!activeDeviceType.value) {
-      activeDeviceType.value = 'phone'
-    }
-
-    if (activeDeviceIndex[activeDeviceType.value] === -1) {
-      activeDeviceIndex[activeDeviceType.value] = 0
-    }
-
-    changeModelValue()
-  },
-)
-
-onBeforeMount(() => {
-  if (Object.keys(activeDeviceIndex).some((key) => query.deviceType === key)) {
-    activeDeviceType.value = query.deviceType as DeviceType
-  } else {
-    activeDeviceType.value = 'phone'
-  }
-
-  if (deviceStore.devices[activeDeviceType.value].some((device) => device.id === query.device)) {
-    activeDeviceIndex[activeDeviceType.value] = deviceStore.devices[
-      activeDeviceType.value
-    ].findIndex((device) => device.id === query.device)
-  } else {
-    activeDeviceIndex[activeDeviceType.value] = 0
-  }
-  changeModelValue()
-})
 </script>
 <template>
   <div class="flex items-center justify-between gap-4">
@@ -173,9 +127,11 @@ onBeforeMount(() => {
       >
         <UButton variant="soft" color="neutral" class="py-0">
           <div>
-            <span class="text-[11px] text-dimmed">{{ currentDevice?.name || 'Select device' }}</span
+            <span class="text-[11px] text-dimmed">{{
+              currentActiveDevice?.name || 'Select device'
+            }}</span
             ><span class="text-[11px] block"
-              >{{ currentDevice?.width }} x {{ currentDevice?.height }}</span
+              >{{ currentActiveDevice?.width }} x {{ currentActiveDevice?.height }}</span
             >
           </div>
           <UIcon name="i-lucide-chevron-down" />

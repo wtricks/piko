@@ -1,7 +1,14 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, ref, watch } from 'vue'
+import {
+  computed,
+  onBeforeMount,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  useTemplateRef,
+  watch,
+} from 'vue'
 import type { TabsItem, AccordionItem, DropdownMenuItem } from '@nuxt/ui'
-import { useDragComponent } from '@/composables/useDragComponent'
 import {
   useComponentStore,
   type ComponentGroup,
@@ -10,10 +17,14 @@ import {
   type LibraryType,
 } from '@/stores/component'
 import { useShortcut } from '@/composables/useShortcut'
+import { useProjectStore } from '@/stores/project'
 
 interface ComponentItemType extends AccordionItem {
   items?: ComponentItem[]
 }
+
+const componentsRef = useTemplateRef('components')
+const { componentTree } = useProjectStore()
 
 const componentStore = useComponentStore()
 
@@ -41,18 +52,6 @@ const tabsItems: TabsItem[] = [
   },
 ]
 
-// Component drag and drop handlers
-const { startDrag, endDrag } = useDragComponent()
-const onDragStart = (event: DragEvent, comp: ComponentItem) => {
-  event.dataTransfer?.setData('application/json', JSON.stringify(comp))
-  event.dataTransfer!.effectAllowed = 'copy'
-  startDrag({ id: comp.id, type: activeTab.value })
-}
-
-const onDragEnd = () => {
-  endDrag()
-}
-
 const searchComponent = ref('')
 const inputRef = ref<HTMLInputElement | null>(null)
 const activeLibraries = ref<string[]>([])
@@ -74,10 +73,6 @@ const generateComponentItems = (groups: ComponentGroup[]): ComponentItemType[] =
     value: g.groupId,
     items: g.items,
   }))
-
-const onSelect = (component: ComponentItem) => {
-  console.log({ component, type: activeTab.value })
-}
 
 const addComponent = () => {
   if (activeTab.value === 'project') {
@@ -159,6 +154,14 @@ onBeforeMount(() => {
       .map((group) => group.items)
       .flat(1) as unknown as ComponentGroup[]
   ).map((group) => group.groupId)
+})
+
+onMounted(() => {
+  componentTree.start(componentsRef.value!)
+})
+
+onBeforeUnmount(() => {
+  componentTree.stop(componentsRef.value!)
 })
 
 watch(activeLibraries, () => {
@@ -248,7 +251,7 @@ useShortcut({
       />
     </div>
 
-    <div class="flex-1 overflow-y-auto h-full w-full">
+    <div class="flex-1 overflow-y-auto h-full w-full" ref="components">
       <div
         v-if="activeTabContent.length === 0"
         class="flex flex-col items-center justify-center h-full text-muted-foreground py-12 px-2"
@@ -294,11 +297,8 @@ useShortcut({
                   </template>
                 </template>
                 <button
-                  draggable="true"
-                  @dragstart="(e) => onDragStart(e, comp)"
-                  @dragend="onDragEnd"
+                  :data-tree-id="comp.id"
                   class="group flex flex-col items-start gap-2 p-1 rounded-md border border-muted/30 focus:outline-none group bg-default"
-                  @click="onSelect(comp)"
                   :title="comp.name"
                 >
                   <div
@@ -344,4 +344,16 @@ useShortcut({
       </UAccordion>
     </div>
   </div>
+
+  <Teleport to="body" v-if="componentTree.isMoving.value">
+    <div
+      class="fixed left-0 top-0 size-6 bg-accented dark:bg-muted z-10 rounded-3xl border border-accented shadow-2xl flex items-center justify-center"
+      :style="{
+        left: componentTree.position.x - 24 + 'px',
+        top: componentTree.position.y - 24 + 'px',
+      }"
+    >
+      {{ componentTree.dragging.value.length }}
+    </div>
+  </Teleport>
 </template>

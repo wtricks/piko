@@ -4,16 +4,18 @@ import { useEventListener } from '@vueuse/core'
 import type { TabsItem } from '@nuxt/ui'
 import { useShortcut } from '@/composables/useShortcut'
 import { useProjectStore } from '@/stores/project'
+import { useQueryRef } from '@/composables/useQueryRef'
 
 export type FolderType = 'all' | 'screens' | 'components'
 
 const container = ref<HTMLDivElement>()
+const activeTab = useQueryRef<FolderType>('all', 'tab', (v) => tabsItems.some((i) => i.value === v))
+
+const showComponentOnly = ref(false)
 
 const topHeight = ref(200)
 const isDragging = ref(false)
 const componentModal = ref(false)
-
-const activeTab = ref<FolderType>('all')
 
 const inputRef = useTemplateRef('input')
 
@@ -96,7 +98,7 @@ watch(activeTab, () => {
 
 <template>
   <div class="flex flex-col h-full w-full select-none" ref="container">
-    <div class="w-full flex flex-col" :style="topStyle">
+    <div v-if="!showComponentOnly" class="w-full flex flex-col" :style="topStyle">
       <template v-if="topHeight > 20">
         <div class="w-full flex items-center justify-between p-2">
           <UTabs :items="tabsItems" class="gap-0" size="sm" v-model="activeTab">
@@ -112,7 +114,7 @@ watch(activeTab, () => {
               <UButton
                 variant="soft"
                 color="neutral"
-                icon="pajamas:folder-new"
+                icon="iconoir:folder-plus"
                 @click="onCreateFolderButtonClick"
               />
             </UTooltip>
@@ -120,7 +122,7 @@ watch(activeTab, () => {
               <UButton
                 variant="solid"
                 color="primary"
-                icon="tabler:file-plus"
+                icon="line-md:file-plus"
                 @click="componentModal = true"
               />
             </UTooltip>
@@ -144,6 +146,7 @@ watch(activeTab, () => {
     </div>
 
     <div
+      v-if="!showComponentOnly"
       class="relative h-2.5 cursor-row-resize bg-border/90 hover:bg-primary/40 transition-colors group shrink-0"
       @mousedown="startDragging"
     >
@@ -153,10 +156,41 @@ watch(activeTab, () => {
     </div>
 
     <div
-      class="flex-1 bg-background p-2 overflow-y-auto scrollbar"
+      class="flex-1 bg-background overflow-y-auto scrollbar"
       :class="{ 'overflow-y-hidden p-0!': bottomHidden }"
     >
-      <TreeView :config="treeStore.componentTree" size="md" />
+      <div class="flex items-center p-2">
+        <UIcon name="tdesign:component-radio" class="size-6" />
+        <h5 class="font-semibold ml-2">Components</h5>
+
+        <div class="flex items-center space-x-1 ml-auto">
+          <UTooltip :text="showComponentOnly ? 'Show pages & components' : 'Show components only'">
+            <UButton
+              variant="soft"
+              color="neutral"
+              icon="proicons:panel-left-expand"
+              :class="showComponentOnly ? 'rotate-90' : '-rotate-90'"
+              @click="showComponentOnly = !showComponentOnly"
+            />
+          </UTooltip>
+          <UTooltip text="Collapsed View">
+            <UButton variant="soft" color="neutral" icon="solar:list-up-linear" />
+          </UTooltip>
+        </div>
+      </div>
+      <div class="bg-accented/80 w-full flex items-center border-y border-default mb-1">
+        <UInput
+          icon="i-lucide-search"
+          placeholder="Search for components... (Ctrl+K)"
+          class="w-full rounded-none border-b-2 border-b-transparent focus-within:border-primary"
+          size="lg"
+          variant="none"
+          ref="input"
+        />
+      </div>
+      <div class="w-full flex-1 overflow-y-auto scrollbar flex">
+        <TreeView :config="treeStore.componentTree" size="md" />
+      </div>
     </div>
   </div>
 </template>
